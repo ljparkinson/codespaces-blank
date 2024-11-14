@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leisure Loop Leaderboard</title>
+    <style>
+        /* Brand Colors and Fonts */
+        @font-face {
+            font-family: 'Futura';
+            src: url('https://path-to-your-futura-font.woff') format('woff');
+        }
+
+        :root {
+            --dark-blue: #012149;
+            --light-blue: #019504;
+            --bright-green: #62D603;
+            --background-color: #f0f8ff;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Futura', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: var(--background-color);
+        }
+
+        .leaderboard {
+            max-width: 800px;
+            width: 100%;
+            padding: 20px;
+            border-radius: 15px;
+            background-color: var(--white);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        h1 {
+            color: var(--dark-blue);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        p {
+            font-size: 1.2rem;
+            color: var(--bright-green);
+            margin-bottom: 20px;
+        }
+
+        #leaderboard-entries {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .leaderboard-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: linear-gradient(90deg, var(--light-blue), var(--bright-green));
+            color: var(--white);
+            border-radius: 10px;
+            transform: scale(1);
+            transition: transform 0.2s;
+            font-size: 1rem;
+        }
+
+        .leaderboard-entry:hover {
+            transform: scale(1.05);
+        }
+
+        .position {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .info {
+            flex-grow: 1;
+            text-align: left;
+            padding-left: 15px;
+        }
+
+        .badge {
+            font-size: 1.2rem;
+            color: var(--dark-blue);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="leaderboard">
+        <h1>Leisure Loop Recycle Scheme Leaderboard</h1>
+        <p>See which pools are leading the way in recycling!</p>
+        <div id="leaderboard-entries"></div>
+    </div>
+
+    <!-- Updated JavaScript Section with Your Google Sheet ID and API Key -->
+    <script>
+        async function loadLeaderboard() {
+            const sheetID = '1ubfRlnUhgzM9As1jSzGDzVd5yOTs1cA9c3p7a3B2l98'; // Your Google Sheet ID
+            const apiKey = 'AIzaSyD0noh5csIdMqQWP4gwLadbfpbIi1Cbs2o';       // Your Google API Key
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetID}/values/Sheet1?key=${apiKey}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                const rows = data.values;
+
+                // Map rows to leaderboard entries
+                const entries = rows.slice(1).map(row => ({
+                    organisation: row[0],
+                    centreName: row[1],
+                    totalWaste: parseFloat(row[8]),
+                    totalCO2Saved: parseFloat(row[9])
+                }));
+
+                // Sort entries by Total Waste
+                entries.sort((a, b) => b.totalWaste - a.totalWaste);
+
+                // Render leaderboard entries
+                const leaderboardContainer = document.getElementById('leaderboard-entries');
+                leaderboardContainer.innerHTML = '';
+                entries.forEach((entry, index) => {
+                    const div = document.createElement('div');
+                    div.classList.add('leaderboard-entry');
+                    div.innerHTML = `
+                        <span class="position">#${index + 1}</span>
+                        <div class="info">
+                            <strong>${entry.organisation}</strong> - ${entry.centreName}<br>
+                            Total Waste: ${entry.totalWaste} KG<br>
+                            CO2 Saved: ${entry.totalCO2Saved.toFixed(2)} KG
+                        </div>
+                        <span class="badge">🌟</span>
+                    `;
+                    leaderboardContainer.appendChild(div);
+                });
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
+
+        // Call the function when the page loads
+        window.onload = loadLeaderboard;
+    </script>
+</body>
+</html>
